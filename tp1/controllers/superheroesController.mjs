@@ -146,7 +146,10 @@ export async function agregarSuperheroeController(req, res) {
 
 
 export async function editarSuperheroeController(req,res) {
-    const respuesta = await fetch(`http://localhost:3000/api/heroes/${req.params.id}`);
+    const { id } = req.params;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const respuesta = await fetch(`${baseUrl}/api/heroes/${id}`);    
+    // const respuesta = await fetch(`http://localhost:3000/api/heroes/${req.params.id}`);
     const superheroe = await respuesta.json();
     if(!superheroe){
         res.status(404).send("Superheroe no encontrado");
