@@ -1,0 +1,149 @@
+<div class="bg-white p-8 flex flex-col items-center">    
+    <div class="w-full max-w-2xl bg-white p-6 border border-gray-200">
+        <h1 class="text-2xl font-bold text-sky-700 mb-6 text-center">Editar Superhéroe</h1>
+        
+        <form id="superHeroeForm" class="space-y-4">
+            
+            <input type="hidden" id="superheroeId" value="<%= superheroe.id %>">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Nombre Superhéroe</label>
+                    <input type="text" id="nombreSuperHeroe" required class="w-full border p-2 rounded" value="<%= superheroe.Nombre %>">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Nombre Real</label>
+                    <input type="text" id="nombreReal" required class="w-full border p-2 rounded" value="<%= superheroe['Nombre Real'] %>">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Edad</label>
+                    <input type="number" id="edad" required class="w-full border p-2 rounded" value="<%= superheroe.Edad %>">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Planeta Origen</label>
+                    <input type="text" id="planetaOrigen" class="w-full border p-2 rounded" value="<%= superheroe['Planeta de Origen'] %>">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Poderes</label>
+                    <input type="text" id="poderes" placeholder="Separados por coma" class="w-full border p-2 rounded" value="<%= superheroe.Poderes %>">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Debilidad</label>
+                    <input type="text" id="debilidad" class="w-full border p-2 rounded" value="<%= superheroe.Debilidad %>">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Aliados</label>
+                    <input type="text" id="aliados" name="aliados" class="w-full border p-2 rounded " value="<%= superheroe.Aliados %>">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Enemigos</label>
+                    <input type="text" id="enemigos" name="enemigos" class="w-full border p-2 rounded " value="<%= superheroe.Enemigos %>">
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded shadow-sm">
+                    Actualizar Superhéroe
+                </button>
+                <a href="/dashboard" class="block text-center mt-3 text-sm text-gray-500 hover:underline">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById("superHeroeForm").addEventListener("submit", async function(event){
+        event.preventDefault(); 
+        
+        // 1. Obtenemos el ID del input oculto
+        const id = document.getElementById("superheroeId").value;
+
+        const nombreSuperHeroe = document.getElementById("nombreSuperHeroe").value.trim();
+        const nombreReal = document.getElementById("nombreReal").value.trim();
+        const edad = document.getElementById("edad").value.trim();
+        const planetaOrigen = document.getElementById("planetaOrigen").value.trim();
+        const debilidad = document.getElementById("debilidad").value.trim();
+        
+        // Los arrays se separan por comas y se limpian
+        const poderes = document.getElementById("poderes").value.split(",").map(poder => poder.trim()).filter(poder => poder !== "");
+        const aliados = document.getElementById("aliados").value.split(",").map(aliado => aliado.trim()).filter(aliado => aliado !== "");
+        const enemigos = document.getElementById("enemigos").value.split(",").map(enemigo => enemigo.trim()).filter(enemigo => enemigo !== "");
+
+        // VALIDACIONES
+        const errors = [];
+        if (!nombreSuperHeroe || nombreSuperHeroe.length < 3 || nombreSuperHeroe.length > 60) {
+            errors.push("El nombre del superhéroe debe tener entre 3 y 60 caracteres.");
+        }
+        if (!nombreReal || nombreReal.length < 3 || nombreReal.length > 60) {
+            errors.push("El nombre real del superhéroe debe tener entre 3 y 60 caracteres.");
+        }
+        if (!edad || isNaN(edad) || edad < 0){
+            errors.push("La edad es requerida y debe ser un número positivo.");
+        }
+        if (!planetaOrigen || planetaOrigen.length < 3 || planetaOrigen.length > 60) {
+            errors.push("El planeta de origen del superhéroe debe tener entre 3 y 60 caracteres.");
+        }
+        if (debilidad.length > 60) {
+            errors.push("La debilidad del superhéroe debe tener como máximo 60 caracteres.");
+        }
+        if (poderes.length < 1 || poderes.some(poder => poder.length < 3 || poder.length > 60)){
+            errors.push("Debe ingresar al menos un poder, y cada poder debe tener entre 3 y 60 caracteres.");
+        }
+
+        if (errors.length > 0) {
+            alert(errors.join("\n"));
+            return; 
+        }
+
+        // ARMADO DE DATOS (Nota: Aquí la variable se llama nombreSuperheroe en minúscula como pedía el TP)
+        const data = {
+            nombreSuperHeroe, 
+            nombreReal,
+            edad: parseInt(edad, 10),
+            planetaOrigen,
+            debilidad,
+            poderes,
+            aliados,
+            enemigos
+        };
+
+        // REALIZAR PETICIÓN PUT (Actualizar)
+        try {
+            // 2. Apuntamos a la URL específica usando el ID
+            const res = await fetch(`/api/heroes/${id}`, {
+                method: "PUT", // Usamos PUT para actualizar
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok){
+                alert('Superhéroe actualizado correctamente');
+                window.location.href = "/dashboard";
+            } else {
+                const error = await res.json();
+                // alert(`Error al actualizar el superhéroe: ${error.mensaje || error.message || 'Error desconocido'}`);
+                // console.log(error);
+                alert(`El servidor rechazó los datos. Motivo: \n${JSON.stringify(error, null, 2)}`);
+                console.log("Detalle del error del servidor:", error);
+            }
+        } catch (err) {
+            console.error('Error en la solicitud', err);
+            alert('Ocurrió un error inesperado al intentar conectarse al servidor.');
+        }
+    });
+</script>

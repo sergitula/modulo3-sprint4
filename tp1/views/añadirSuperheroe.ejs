@@ -1,0 +1,150 @@
+<section class="bg-white p-8 flex flex-col items-center">
+    <div class="w-full max-w-2xl bg-white p-6 border border-gray-200">
+        <h1 class="text-2xl font-bold text-sky-700 mb-6 text-center">Nuevo Superhéroe</h1>
+        
+        <form id="superHeroeForm" class="space-y-4">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Nombre Superhéroe</label>
+                    <input type="text" id="nombreSuperHeroe"  required class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Nombre Real</label>
+                    <input type="text" id="nombreReal" required class="w-full border p-2 rounded">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Edad</label>
+                    <input type="number" id="edad" required class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Planeta Origen</label>
+                    <input type="text" id="planetaOrigen" class="w-full border p-2 rounded">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Poderes</label>
+                    <input type="text" id="poderes" placeholder="Separados por coma" class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Debilidad</label>
+                    <input type="text" id="debilidad" class="w-full border p-2 rounded">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Aliados</label>
+                    <input type="text" id="aliados" class="w-full border p-2 rounded ">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Enemigos</label>
+                    <input type="text" id="enemigos" class="w-full border p-2 rounded ">
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-green-400 hover:bg-green-500 text-sky-900 font-bold py-2 rounded shadow-sm">
+                    Guardar Superhéroe
+                </button>
+                <a href="/" class="block text-center mt-3 text-sm text-gray-500 hover:underline">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</section>
+
+<script>
+    document.getElementById("superHeroeForm").addEventListener("submit", async function(event){
+        event.preventDefault(); // Evita el envio tradicional del form
+        
+        const nombreSuperHeroe = document.getElementById("nombreSuperHeroe").value.trim();
+        const nombreReal = document.getElementById("nombreReal").value.trim();
+        const edad = document.getElementById("edad").value.trim();
+        const planetaOrigen = document.getElementById("planetaOrigen").value.trim();
+        const debilidad = document.getElementById("debilidad").value.trim();
+        const poderes = document.getElementById("poderes").value.split(",").map(poder => poder.trim()).filter(poder => poder !== "");
+        const aliados = document.getElementById("aliados").value.trim().split(",").map(aliado => aliado.trim()).filter(aliado => aliado !== "") ;
+        const enemigos = document.getElementById("enemigos").value.trim().split(",").map(enemigo => enemigo.trim()).filter(enemigo => enemigo !== "") ;
+
+
+        const errors = [];
+        if (!nombreSuperHeroe || nombreSuperHeroe.length < 3 || nombreSuperHeroe.length > 60) {
+            errors.push("El nombre del superhéroe debe tener entre 3 y 60 caracteres.");
+        }
+        if (!nombreReal || nombreReal.length < 3 || nombreReal.length > 60) {
+            errors.push("El nombre real del superhéroe debe tener entre 3 y 60 caracteres.");
+        }
+        if (!edad || isNaN(edad) || edad < 0){
+            errors.push("La edad es requerida y debe ser un número positivo.");
+        }
+        if (!planetaOrigen || planetaOrigen.length < 3 || planetaOrigen.length > 60) {
+            errors.push("El planeta de origen del superhéroe debe tener entre 3 y 60 caracteres.");
+        }
+        if (debilidad.length > 60) {
+            errors.push("La debilidad del superhéroe debe tener como máximo 60 caracteres.");
+        }
+        
+        if (poderes.length < 1 || poderes.some(poderes => poderes.length < 3 || poderes.length > 60)){
+            errors.push("El poder del superhéroe debe tener entre 3 y 6 caracteres.");
+
+        }
+
+        if (errors.length > 0) {
+            alert(errors.join("\n"));
+            return; // detiene el envio del form si es >0
+
+        }
+
+        
+        // REALIZAR PETICIÓN POST
+
+        const data = {
+            nombreSuperHeroe,
+            nombreReal,
+            edad: edad ? parseInt(edad,10) : null,
+            planetaOrigen,
+            debilidad,
+            poderes,
+            aliados,
+            enemigos
+        }
+        try{
+            const res = await fetch("/api/heroes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok){
+                const result = await res.json();
+                alert('Superhéroe agregado correctamente');
+                console.log(result);
+                window.location.href = "/dashboard";
+            }else{
+                const error = await res.json();
+                // alert(`Error al agregar el superhéroe: ${error.mensaje || error.message}`);
+                // console.log(error);
+                alert(`El servidor rechazó los datos. Motivo: \n${JSON.stringify(error, null, 2)}`);
+                console.log("Detalle del error del servidor:", error);
+            }
+        }catch (err){
+            console.error('Error en la solicitud', err);
+            alert('Ocurrio un error inesperado.');
+        }
+        
+    
+
+    });
+
+</script>
